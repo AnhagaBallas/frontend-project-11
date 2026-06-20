@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RSS Агрегатор</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="#">RSS Агрегатор</a>
+      </div>
+    </nav>
+
+    <main>
+      <div class="container-xxl">
+        <div class="row mt-5 justify-content-center">
+          <div class="col-md-10 col-lg-8">
+
+            <div class="text-center mb-4">
+              <h1 class="display-5 fw-bold">Читайте только нужное!</h1>
+              <p class="lead text-muted">
+                Начните читать RSS сегодня! Это легко, это красиво.
+              </p>
+            </div>
+
+            <form id="rss-form" class="row g-2">
+              <div class="col-12 col-sm">
+                <label for="rss-input" class="visually-hidden">
+                  Ссылка RSS
+                </label>
+                <input
+                  id="rss-input"
+                  type="url"
+                  name="url"
+                  class="form-control form-control-lg"
+                  placeholder="Ссылка RSS"
+                  required
+                  autofocus
+                />
+              </div>
+              <div class="col-12 col-sm-auto">
+                <button type="submit" class="btn btn-lg btn-primary w-100">
+                  Добавить
+                </button>
+              </div>
+            </form>
+
+            <p class="mt-2 mb-0 text-muted small">
+              Пример: https://ru.hexlet.io/lessons.rss
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer mt-5 py-3 bg-light border-top">
+      <div class="container text-center text-muted">
+        <span>RSS Агрегатор</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
