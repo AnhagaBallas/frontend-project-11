@@ -26,25 +26,36 @@
 
             <form id="rss-form" class="row g-2">
               <div class="col-12 col-sm">
+
                 <label for="rss-input" class="visually-hidden">
                   Ссылка RSS
                 </label>
+
                 <input
                   id="rss-input"
                   type="url"
                   name="url"
                   class="form-control form-control-lg"
                   placeholder="Ссылка RSS"
+                  aria-label="Ссылка RSS"
+                  autocomplete="off"
                   required
                   autofocus
                 />
+
               </div>
               <div class="col-12 col-sm-auto">
-                <button type="submit" class="btn btn-lg btn-primary w-100">
+                <button
+                  type="submit"
+                  class="btn btn-lg btn-primary w-100"
+                >
                   Добавить
                 </button>
               </div>
             </form>
+
+            <!-- Блок для сообщений об ошибках / успехе -->
+            <p id="feedback" class="mt-2 mb-0 small"></p>
 
             <p class="mt-2 mb-0 text-muted small">
               Пример: https://ru.hexlet.io/lessons.rss
