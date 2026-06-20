@@ -20,15 +20,18 @@ const generateId = () => {
 // ─── Состояние ──────────────────────────────────────────────
 
 const state = proxy({
-  feeds: [],   // [{ id, url, title, description }]
-  posts: [],   // [{ id, feedId, title, link }]
+  feeds: [],
+  posts: [],
+  ui: {
+    readPostIds: new Set(),  // id прочитанных постов
+  },
   form: {
     status: 'idle',
     error: null,
   },
 });
 
-// ─── Парсинг и загрузка ─────────────────────────────────────
+// ─── Загрузка фида ──────────────────────────────────────────
 
 const loadFeed = (url) => fetchFeed(url)
   .then((xml) => parse(xml))
@@ -42,6 +45,7 @@ const loadFeed = (url) => fetchFeed(url)
       feedId,
       title: item.title,
       link: item.link,
+      description: item.description,
     }));
 
     state.posts.unshift(...newPosts);
@@ -67,18 +71,15 @@ const loadFeed = (url) => fetchFeed(url)
 // ─── Обновление фидов ───────────────────────────────────────
 
 const updateFeeds = () => {
-  // Для каждого фида делаем запрос и ищем новые посты
   const promises = state.feeds.map((feed) => fetchFeed(feed.url)
     .then((xml) => parse(xml))
     .then(({ items }) => {
-      // Существующие ссылки постов этого фида
       const existingLinks = new Set(
         state.posts
           .filter((post) => post.feedId === feed.id)
           .map((post) => post.link),
       );
 
-      // Только новые посты — которых ещё нет в списке
       const newPosts = items
         .filter((item) => !existingLinks.has(item.link))
         .map((item) => ({
@@ -86,18 +87,15 @@ const updateFeeds = () => {
           feedId: feed.id,
           title: item.title,
           link: item.link,
+          description: item.description,
         }));
 
       if (newPosts.length > 0) {
         state.posts.unshift(...newPosts);
       }
     })
-    .catch(() => {
-      // Игнорируем ошибки сети при фоновом обновлении —
-      // не мешаем пользователю, попробуем снова через 5 секунд
-    }));
+    .catch(() => {}));
 
-  // Ждём завершения ВСЕХ запросов, затем планируем следующую проверку
   Promise.allSettled(promises).then(() => {
     setTimeout(updateFeeds, REFRESH_INTERVAL);
   });
@@ -134,6 +132,5 @@ i18next
         });
     });
 
-    // Запускаем фоновое обновление
     setTimeout(updateFeeds, REFRESH_INTERVAL);
   });

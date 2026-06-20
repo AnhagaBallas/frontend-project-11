@@ -9,6 +9,11 @@ export default {
       example: 'Пример: https://ru.hexlet.io/lessons.rss',
       feeds: 'Фиды',
       posts: 'Посты',
+      preview: 'Просмотр',
+      modal: {
+        close: 'Закрыть',
+        read: 'Читать полностью',
+      },
     },
 
     messages: {

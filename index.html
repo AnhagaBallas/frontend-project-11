@@ -26,9 +26,7 @@
 
             <form id="rss-form" class="row g-2">
               <div class="col-12 col-sm">
-                <label for="rss-input" class="visually-hidden">
-                  Ссылка RSS
-                </label>
+                <label for="rss-input" class="visually-hidden">Ссылка RSS</label>
                 <input
                   id="rss-input"
                   type="url"
@@ -49,7 +47,6 @@
             </form>
 
             <p id="feedback" class="mt-2 mb-0 small"></p>
-
             <p class="mt-2 mb-0 text-muted small">
               Пример: https://ru.hexlet.io/lessons.rss
             </p>
@@ -57,14 +54,35 @@
           </div>
         </div>
 
-        <!-- Фиды и посты -->
         <div class="row mt-5">
           <div class="col-md-4" id="feeds"></div>
           <div class="col-md-8" id="posts"></div>
         </div>
-
       </div>
     </main>
+
+    <!-- Модальное окно -->
+    <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="modalBody"></div>
+          <div class="modal-footer">
+            <a
+              id="modalReadLink"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-primary"
+            ></a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modalClose"></button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <footer class="footer mt-5 py-3 bg-light border-top">
       <div class="container text-center text-muted">

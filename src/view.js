@@ -1,4 +1,5 @@
 import { subscribe } from 'valtio/vanilla';
+import { Modal } from 'bootstrap';
 
 const elements = {
   form: document.querySelector('#rss-form'),
@@ -7,6 +8,13 @@ const elements = {
   button: document.querySelector('[type="submit"]'),
   feedsContainer: document.querySelector('#feeds'),
   postsContainer: document.querySelector('#posts'),
+  modal: {
+    window: document.querySelector('#modal'),
+    title: document.querySelector('#modalTitle'),
+    body: document.querySelector('#modalBody'),
+    readLink: document.querySelector('#modalReadLink'),
+    closeBtn: document.querySelector('#modalClose'),
+  },
 };
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -81,12 +89,12 @@ const renderFeeds = (feeds, i18n) => {
     list.append(item);
   });
 
-  card.append(list);
   cardBody.append(list);
+  card.append(list);
   feedsContainer.append(card);
 };
 
-const renderPosts = (posts, i18n) => {
+const renderPosts = (posts, readPostIds, i18n) => {
   const { postsContainer } = elements;
   postsContainer.innerHTML = '';
 
@@ -106,21 +114,90 @@ const renderPosts = (posts, i18n) => {
       'border-end-0',
     );
 
+    // Ссылка — жирная если не читали, обычная если читали
     const link = document.createElement('a');
     link.href = post.link;
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.classList.add('fw-bold');
-    link.textContent = post.title;
     link.dataset.id = post.id;
+    link.textContent = post.title;
+    link.classList.add(readPostIds.has(post.id) ? 'fw-normal' : 'fw-bold');
 
-    item.append(link);
+    // Кнопка предпросмотра
+    const previewBtn = document.createElement('button');
+    previewBtn.type = 'button';
+    previewBtn.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'flex-shrink-0', 'ms-2');
+    previewBtn.dataset.id = post.id;
+    previewBtn.dataset.bsToggle = 'modal';
+    previewBtn.dataset.bsTarget = '#modal';
+    previewBtn.textContent = i18n.t('ui.preview');
+
+    item.append(link, previewBtn);
     list.append(item);
   });
 
-  card.append(list);
   cardBody.append(list);
+  card.append(list);
   postsContainer.append(card);
+};
+
+const renderModal = (post, i18n) => {
+  const { modal } = elements;
+
+  modal.title.textContent = post.title;
+  modal.body.textContent = post.description;
+  modal.readLink.href = post.link;
+  modal.readLink.textContent = i18n.t('ui.modal.read');
+  modal.closeBtn.textContent = i18n.t('ui.modal.close');
+};
+
+const renderReadPost = (postId) => {
+  const link = elements.postsContainer.querySelector(`a[data-id="${postId}"]`);
+  if (link) {
+    link.classList.remove('fw-bold');
+    link.classList.add('fw-normal');
+  }
+};
+
+// ─── Init ───────────────────────────────────────────────────
+
+const initView = (state, i18n) => {
+  const modal = new Modal(elements.modal.window);
+
+  // Клик по кнопке предпросмотра
+  elements.postsContainer.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+
+    const postId = Number(btn.dataset.id);
+    const post = state.posts.find((p) => p.id === postId);
+    if (!post) return;
+
+    // Помечаем как прочитанный
+    state.ui.readPostIds.add(postId);
+    renderReadPost(postId);
+
+    // Показываем модалку
+    renderModal(post, i18n);
+    modal.show();
+  });
+
+  // Подписка на изменения состояния
+  subscribe(state, () => {
+    renderFeeds(state.feeds, i18n);
+    renderPosts(state.posts, state.ui.readPostIds, i18n);
+
+    if (state.form.error) {
+      renderFeedback(state.form.error, i18n);
+      return;
+    }
+
+    renderForm(state);
+
+    if (state.form.status === 'idle' && state.feeds.length > 0) {
+      renderSuccess(i18n);
+    }
+  });
 };
 
 const renderForm = (state) => {
@@ -138,31 +215,6 @@ const renderForm = (state) => {
       button.removeAttribute('disabled');
       break;
   }
-};
-
-// ─── Init ───────────────────────────────────────────────────
-
-const initView = (state, i18n) => {
-  subscribe(state, () => {
-    renderForm(state);
-
-    if (state.form.error) {
-      renderFeedback(state.form.error, i18n);
-      return;
-    }
-
-    if (state.form.status === 'idle' && state.feeds.length > 0) {
-      renderSuccess(i18n);
-    }
-
-    if (state.feeds.length > 0) {
-      renderFeeds(state.feeds, i18n);
-    }
-
-    if (state.posts.length > 0) {
-      renderPosts(state.posts, i18n);
-    }
-  });
 };
 
 export default initView;
