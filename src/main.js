@@ -7,6 +7,8 @@ import initView from './view.js';
 import fetchFeed from './api.js';
 import parse from './parse.js';
 
+const REFRESH_INTERVAL = 5000;
+
 // ─── Утилиты ────────────────────────────────────────────────
 
 let nextId = 1;
@@ -21,12 +23,12 @@ const state = proxy({
   feeds: [],   // [{ id, url, title, description }]
   posts: [],   // [{ id, feedId, title, link }]
   form: {
-    status: 'idle',  // idle | loading
+    status: 'idle',
     error: null,
   },
 });
 
-// ─── Обработка загрузки фида ────────────────────────────────
+// ─── Парсинг и загрузка ─────────────────────────────────────
 
 const loadFeed = (url) => fetchFeed(url)
   .then((xml) => parse(xml))
@@ -62,6 +64,45 @@ const loadFeed = (url) => fetchFeed(url)
     state.form.error = 'errors.unknown';
   });
 
+// ─── Обновление фидов ───────────────────────────────────────
+
+const updateFeeds = () => {
+  // Для каждого фида делаем запрос и ищем новые посты
+  const promises = state.feeds.map((feed) => fetchFeed(feed.url)
+    .then((xml) => parse(xml))
+    .then(({ items }) => {
+      // Существующие ссылки постов этого фида
+      const existingLinks = new Set(
+        state.posts
+          .filter((post) => post.feedId === feed.id)
+          .map((post) => post.link),
+      );
+
+      // Только новые посты — которых ещё нет в списке
+      const newPosts = items
+        .filter((item) => !existingLinks.has(item.link))
+        .map((item) => ({
+          id: generateId(),
+          feedId: feed.id,
+          title: item.title,
+          link: item.link,
+        }));
+
+      if (newPosts.length > 0) {
+        state.posts.unshift(...newPosts);
+      }
+    })
+    .catch(() => {
+      // Игнорируем ошибки сети при фоновом обновлении —
+      // не мешаем пользователю, попробуем снова через 5 секунд
+    }));
+
+  // Ждём завершения ВСЕХ запросов, затем планируем следующую проверку
+  Promise.allSettled(promises).then(() => {
+    setTimeout(updateFeeds, REFRESH_INTERVAL);
+  });
+};
+
 // ─── Инициализация ──────────────────────────────────────────
 
 i18next
@@ -92,4 +133,7 @@ i18next
           state.form.error = err.errors[0];
         });
     });
+
+    // Запускаем фоновое обновление
+    setTimeout(updateFeeds, REFRESH_INTERVAL);
   });

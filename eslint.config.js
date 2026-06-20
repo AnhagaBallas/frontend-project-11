@@ -15,6 +15,9 @@ export default [
         FormData: 'readonly',
         DOMParser: 'readonly',
         URLSearchParams: 'readonly',
+        setTimeout: 'readonly',
+        Promise: 'readonly',
+        Set: 'readonly',
       },
     },
     rules: {
