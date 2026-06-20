@@ -1,11 +1,21 @@
 import * as yup from 'yup';
 
+// Устанавливаем коды ошибок вместо текстов
+yup.setLocale({
+  mixed: {
+    required: 'errors.validation.required',
+  },
+  string: {
+    url: 'errors.validation.url',
+  },
+});
+
 const createSchema = (existingUrls) => yup.object({
   url: yup
     .string()
-    .required('Не должно быть пустым')
-    .url('Ссылка должна быть валидным URL')
-    .notOneOf(existingUrls, 'RSS уже существует'),
+    .required()
+    .url()
+    .notOneOf(existingUrls, 'errors.validation.duplicate'),
 });
 
 const validate = (fields, existingUrls) => {

@@ -7,14 +7,15 @@ const elements = {
   button: document.querySelector('[type="submit"]'),
 };
 
-const renderError = (error) => {
+const renderError = (errorCode, i18n) => {
   const { input, feedback } = elements;
 
-  if (error) {
+  if (errorCode) {
     input.classList.add('is-invalid');
     feedback.classList.remove('text-success');
     feedback.classList.add('text-danger');
-    feedback.textContent = error;
+    // Переводим код ошибки в текст через i18n
+    feedback.textContent = i18n.t(errorCode);
   } else {
     input.classList.remove('is-invalid');
     feedback.classList.remove('text-danger');
@@ -22,13 +23,13 @@ const renderError = (error) => {
   }
 };
 
-const renderSuccess = () => {
+const renderSuccess = (i18n) => {
   const { input, feedback, form } = elements;
 
   input.classList.remove('is-invalid');
   feedback.classList.remove('text-danger');
   feedback.classList.add('text-success');
-  feedback.textContent = 'RSS успешно загружен';
+  feedback.textContent = i18n.t('messages.success');
 
   form.reset();
   input.focus();
@@ -51,17 +52,17 @@ const renderForm = (state) => {
   }
 };
 
-const initView = (state) => {
+const initView = (state, i18n) => {
   subscribe(state, () => {
     renderForm(state);
 
     if (state.form.error) {
-      renderError(state.form.error);
+      renderError(state.form.error, i18n);
       return;
     }
 
     if (state.form.status === 'idle' && state.feeds.length > 0) {
-      renderSuccess();
+      renderSuccess(i18n);
     }
   });
 };
