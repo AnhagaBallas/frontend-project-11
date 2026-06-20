@@ -26,11 +26,9 @@
 
             <form id="rss-form" class="row g-2">
               <div class="col-12 col-sm">
-
                 <label for="rss-input" class="visually-hidden">
                   Ссылка RSS
                 </label>
-
                 <input
                   id="rss-input"
                   type="url"
@@ -42,19 +40,14 @@
                   required
                   autofocus
                 />
-
               </div>
               <div class="col-12 col-sm-auto">
-                <button
-                  type="submit"
-                  class="btn btn-lg btn-primary w-100"
-                >
+                <button type="submit" class="btn btn-lg btn-primary w-100">
                   Добавить
                 </button>
               </div>
             </form>
 
-            <!-- Блок для сообщений об ошибках / успехе -->
             <p id="feedback" class="mt-2 mb-0 small"></p>
 
             <p class="mt-2 mb-0 text-muted small">
@@ -63,6 +56,13 @@
 
           </div>
         </div>
+
+        <!-- Фиды и посты -->
+        <div class="row mt-5">
+          <div class="col-md-4" id="feeds"></div>
+          <div class="col-md-8" id="posts"></div>
+        </div>
+
       </div>
     </main>
 

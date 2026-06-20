@@ -7,10 +7,14 @@ export default [
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
+        // Node.js
+        console: 'readonly',
+        // Browser
         window: 'readonly',
         document: 'readonly',
-        console: 'readonly',
         FormData: 'readonly',
+        DOMParser: 'readonly',
+        URLSearchParams: 'readonly',
       },
     },
     rules: {

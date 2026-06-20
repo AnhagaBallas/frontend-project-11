@@ -1,6 +1,5 @@
 export default {
   translation: {
-    // Интерфейс
     ui: {
       title: 'RSS Агрегатор',
       subtitle: 'Начните читать RSS сегодня! Это легко, это красиво.',
@@ -8,20 +7,23 @@ export default {
       placeholder: 'Ссылка RSS',
       button: 'Добавить',
       example: 'Пример: https://ru.hexlet.io/lessons.rss',
+      feeds: 'Фиды',
+      posts: 'Посты',
     },
 
-    // Сообщения
     messages: {
       success: 'RSS успешно загружен',
     },
 
-    // Коды ошибок валидации
     errors: {
       validation: {
         required: 'Не должно быть пустым',
         url: 'Ссылка должна быть валидным URL',
         duplicate: 'RSS уже существует',
       },
+      network: 'Ошибка сети',
+      parse: 'Ресурс не содержит валидный RSS',
+      unknown: 'Неизвестная ошибка',
     },
   },
 };
