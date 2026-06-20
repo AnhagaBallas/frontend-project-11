@@ -1,12 +1,6 @@
 export default {
   translation: {
     ui: {
-      title: 'RSS Агрегатор',
-      subtitle: 'Начните читать RSS сегодня! Это легко, это красиво.',
-      label: 'Ссылка RSS',
-      placeholder: 'Ссылка RSS',
-      button: 'Добавить',
-      example: 'Пример: https://ru.hexlet.io/lessons.rss',
       feeds: 'Фиды',
       posts: 'Посты',
       preview: 'Просмотр',

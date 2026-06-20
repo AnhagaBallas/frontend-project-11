@@ -9,21 +9,15 @@ import parse from './parse.js';
 
 const REFRESH_INTERVAL = 5000;
 
-// ─── Утилиты ────────────────────────────────────────────────
+const generateId = () => Math.random();
 
-let nextId = 1;
-const generateId = () => {
-  nextId += 1;
-  return nextId;
-};
-
-// ─── Состояние ──────────────────────────────────────────────
+// ─── Состояние (создаётся при каждом запуске модуля) ────────
 
 const state = proxy({
   feeds: [],
   posts: [],
   ui: {
-    readPostIds: new Set(),  // id прочитанных постов
+    readPostIds: new Set(),
   },
   form: {
     status: 'idle',
@@ -68,7 +62,7 @@ const loadFeed = (url) => fetchFeed(url)
     state.form.error = 'errors.unknown';
   });
 
-// ─── Обновление фидов ───────────────────────────────────────
+// ─── Фоновое обновление ─────────────────────────────────────
 
 const updateFeeds = () => {
   const promises = state.feeds.map((feed) => fetchFeed(feed.url)

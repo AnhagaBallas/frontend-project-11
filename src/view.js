@@ -1,22 +1,6 @@
 import { subscribe } from 'valtio/vanilla';
 import { Modal } from 'bootstrap';
 
-const elements = {
-  form: document.querySelector('#rss-form'),
-  input: document.querySelector('#rss-input'),
-  feedback: document.querySelector('#feedback'),
-  button: document.querySelector('[type="submit"]'),
-  feedsContainer: document.querySelector('#feeds'),
-  postsContainer: document.querySelector('#posts'),
-  modal: {
-    window: document.querySelector('#modal'),
-    title: document.querySelector('#modalTitle'),
-    body: document.querySelector('#modalBody'),
-    readLink: document.querySelector('#modalReadLink'),
-    closeBtn: document.querySelector('#modalClose'),
-  },
-};
-
 // ─── Helpers ────────────────────────────────────────────────
 
 const createCard = (title) => {
@@ -37,36 +21,42 @@ const createCard = (title) => {
 
 // ─── Renders ────────────────────────────────────────────────
 
-const renderFeedback = (errorCode, i18n) => {
-  const { input, feedback } = elements;
-
-  if (errorCode) {
-    input.classList.add('is-invalid');
-    feedback.classList.remove('text-success');
-    feedback.classList.add('text-danger');
-    feedback.textContent = i18n.t(errorCode);
-  } else {
-    input.classList.remove('is-invalid');
-    feedback.classList.remove('text-danger');
-    feedback.textContent = '';
+const renderForm = (status, els) => {
+  switch (status) {
+    case 'loading':
+      els.input.setAttribute('readonly', true);
+      els.button.setAttribute('disabled', true);
+      break;
+    case 'idle':
+    default:
+      els.input.removeAttribute('readonly');
+      els.button.removeAttribute('disabled');
+      break;
   }
 };
 
-const renderSuccess = (i18n) => {
-  const { input, feedback, form } = elements;
+const renderFeedback = ({ error, status, feedsCount }, els, i18n) => {
+  if (error) {
+    els.input.classList.add('is-invalid');
+    els.feedback.classList.remove('text-success');
+    els.feedback.classList.add('text-danger');
+    els.feedback.textContent = i18n.t(error);
+    return;
+  }
 
-  input.classList.remove('is-invalid');
-  feedback.classList.remove('text-danger');
-  feedback.classList.add('text-success');
-  feedback.textContent = i18n.t('messages.success');
+  els.input.classList.remove('is-invalid');
+  els.feedback.classList.remove('text-danger');
 
-  form.reset();
-  input.focus();
+  if (status === 'idle' && feedsCount > 0) {
+    els.feedback.classList.add('text-success');
+    els.feedback.textContent = i18n.t('messages.success');
+    els.form.reset();
+    els.input.focus();
+  }
 };
 
-const renderFeeds = (feeds, i18n) => {
-  const { feedsContainer } = elements;
-  feedsContainer.innerHTML = '';
+const renderFeeds = (feeds, els, i18n) => {
+  els.feedsContainer.innerHTML = '';
 
   const { card, cardBody } = createCard(i18n.t('ui.feeds'));
 
@@ -91,12 +81,11 @@ const renderFeeds = (feeds, i18n) => {
 
   cardBody.append(list);
   card.append(list);
-  feedsContainer.append(card);
+  els.feedsContainer.append(card);
 };
 
-const renderPosts = (posts, readPostIds, i18n) => {
-  const { postsContainer } = elements;
-  postsContainer.innerHTML = '';
+const renderPosts = (posts, readPostIds, els, i18n) => {
+  els.postsContainer.innerHTML = '';
 
   const { card, cardBody } = createCard(i18n.t('ui.posts'));
 
@@ -114,7 +103,6 @@ const renderPosts = (posts, readPostIds, i18n) => {
       'border-end-0',
     );
 
-    // Ссылка — жирная если не читали, обычная если читали
     const link = document.createElement('a');
     link.href = post.link;
     link.target = '_blank';
@@ -123,7 +111,6 @@ const renderPosts = (posts, readPostIds, i18n) => {
     link.textContent = post.title;
     link.classList.add(readPostIds.has(post.id) ? 'fw-normal' : 'fw-bold');
 
-    // Кнопка предпросмотра
     const previewBtn = document.createElement('button');
     previewBtn.type = 'button';
     previewBtn.classList.add('btn', 'btn-outline-primary', 'btn-sm', 'flex-shrink-0', 'ms-2');
@@ -138,34 +125,41 @@ const renderPosts = (posts, readPostIds, i18n) => {
 
   cardBody.append(list);
   card.append(list);
-  postsContainer.append(card);
+  els.postsContainer.append(card);
 };
 
-const renderModal = (post, i18n) => {
-  const { modal } = elements;
-
-  modal.title.textContent = post.title;
-  modal.body.textContent = post.description;
-  modal.readLink.href = post.link;
-  modal.readLink.textContent = i18n.t('ui.modal.read');
-  modal.closeBtn.textContent = i18n.t('ui.modal.close');
-};
-
-const renderReadPost = (postId) => {
-  const link = elements.postsContainer.querySelector(`a[data-id="${postId}"]`);
-  if (link) {
-    link.classList.remove('fw-bold');
-    link.classList.add('fw-normal');
-  }
+const renderModal = (post, els, i18n) => {
+  els.modal.title.textContent = post.title;
+  els.modal.body.textContent = post.description;
+  els.modal.readLink.href = post.link;
+  els.modal.readLink.textContent = i18n.t('ui.modal.read');
+  els.modal.closeBtn.textContent = i18n.t('ui.modal.close');
 };
 
 // ─── Init ───────────────────────────────────────────────────
 
 const initView = (state, i18n) => {
-  const modal = new Modal(elements.modal.window);
+  const els = {
+    form: document.querySelector('#rss-form'),
+    input: document.querySelector('#rss-input'),
+    feedback: document.querySelector('#feedback'),
+    button: document.querySelector('[type="submit"]'),
+    feedsContainer: document.querySelector('#feeds'),
+    postsContainer: document.querySelector('#posts'),
+    modal: {
+      window: document.querySelector('#modal'),
+      title: document.querySelector('#modalTitle'),
+      body: document.querySelector('#modalBody'),
+      readLink: document.querySelector('#modalReadLink'),
+      closeBtn: document.querySelector('#modalClose'),
+    },
+  };
 
-  // Клик по кнопке предпросмотра
-  elements.postsContainer.addEventListener('click', (e) => {
+  // Bootstrap Modal экземпляр — локальный, не глобальный
+  const modalInstance = new Modal(els.modal.window);
+
+  // Клик по кнопке «Просмотр»
+  els.postsContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-id]');
     if (!btn) return;
 
@@ -175,46 +169,35 @@ const initView = (state, i18n) => {
 
     // Помечаем как прочитанный
     state.ui.readPostIds.add(postId);
-    renderReadPost(postId);
 
-    // Показываем модалку
-    renderModal(post, i18n);
-    modal.show();
+    // Обновляем только эту ссылку — без полного перерендера
+    const link = els.postsContainer.querySelector(`a[data-id="${postId}"]`);
+    if (link) {
+      link.classList.remove('fw-bold');
+      link.classList.add('fw-normal');
+    }
+
+    renderModal(post, els, i18n);
+    modalInstance.show();
   });
 
-  // Подписка на изменения состояния
+  // Реактивность через Valtio
   subscribe(state, () => {
-    renderFeeds(state.feeds, i18n);
-    renderPosts(state.posts, state.ui.readPostIds, i18n);
+    renderForm(state.form.status, els);
+    renderFeedback(
+      { error: state.form.error, status: state.form.status, feedsCount: state.feeds.length },
+      els,
+      i18n,
+    );
 
-    if (state.form.error) {
-      renderFeedback(state.form.error, i18n);
-      return;
+    if (state.feeds.length > 0) {
+      renderFeeds(state.feeds, els, i18n);
     }
 
-    renderForm(state);
-
-    if (state.form.status === 'idle' && state.feeds.length > 0) {
-      renderSuccess(i18n);
+    if (state.posts.length > 0) {
+      renderPosts(state.posts, state.ui.readPostIds, els, i18n);
     }
   });
-};
-
-const renderForm = (state) => {
-  const { input, button } = elements;
-
-  switch (state.form.status) {
-    case 'loading':
-      input.setAttribute('readonly', true);
-      button.setAttribute('disabled', true);
-      break;
-
-    case 'idle':
-    default:
-      input.removeAttribute('readonly');
-      button.removeAttribute('disabled');
-      break;
-  }
 };
 
 export default initView;
